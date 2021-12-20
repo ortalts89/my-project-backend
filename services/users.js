@@ -4,12 +4,21 @@ function getUser(userId) {
     return User.findById(userId);
 }
 
+async function getUserByLoginData(data) {
+    const user = await User.findOne({username: data.username});
+    if(user){
+        if(user.password === data.password){
+            return user;
+        }
+    }
+}
+
 function getUsers(users) {
     return User.find(users);
 }
 
-function createUser(data) {
-    const user = new User(data);
+async function createUser(data) {
+    const user = await new User(data);
     return user.save();
 }
 
@@ -21,5 +30,6 @@ module.exports = {
     getUser,
     getUsers,
     createUser,
-    updateUser
+    updateUser,
+    getUserByLoginData
 }

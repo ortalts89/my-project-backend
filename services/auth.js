@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const {updateUser} = require('./users');
 
 async function setUserToken(user) {

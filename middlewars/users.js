@@ -10,17 +10,18 @@ const checkUser = async (req, res, next) => {
     let createDate;
 
     if(!token){
-        return res.status(401);
+        return res.status(401).end();
     }
     try{
-        payload = jwt.verify(token, process.env.JWT_SECRET)
+        payload = jwt.verify(token, process.env.JWT_SECRET);
+
         if(!payload){
             throw new Error('Invalid token');
         }
         createDate = new Date(payload.created);
        
     }catch(err){
-        return res.status(401);
+        return res.status(401).end();
     }
 
     if(Date.now() - createDate < TEN_MINUTES){
@@ -33,11 +34,12 @@ const checkUser = async (req, res, next) => {
         user.authenticationMethods &&
         user.authenticationMethods.created === payload.created &&
         user.authenticationMethods.identifier === payload.identifier)){
-        return res.status(401);
+        return res.status(401).end();
     }
 
     const newToken = await setUserToken(user);
-    res.cookie("token",newToken, {maxAge:'90d', httpOnly: true});
+    res.cookie("token",newToken, {expires: new Date(Date.now() + 9000000), httpOnly: true});
+    req.user = payload.user;
     next();
 }
 
