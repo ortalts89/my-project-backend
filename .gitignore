@@ -4,3 +4,4 @@ logs
 npm-debug.log*
 .env
 .npm
+db-data
