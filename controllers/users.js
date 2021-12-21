@@ -26,12 +26,18 @@ async function logout(req, res) {
 
 async function getUserProfile(req, res) {
     const user = await getUser(req.user.id);
+    if(!user){
+        res.status(401).json({message:"Your not authorized to view this page"})
+    }
     res.json({fullname: user.fullname, email: user.email, password: user.password});
 }
 
 async function getCurrentUser(req, res) {
-    const user = await getUser(req.user);
-    res.json({fullname: user.fullname})
+    const user = await getUser(req.user.id);
+    if(!user){
+        res.status(404).json({message:"User not found"})
+    }
+    res.json({id: user.id})
 }
 
 module.exports = {

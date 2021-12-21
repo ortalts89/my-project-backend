@@ -7,5 +7,5 @@ module.exports = (app) => {
     app.post('/api/login', login)
     app.get('/api/profile', checkUser, getUserProfile)
     app.get('/api/logout', checkUser, logout)
-    //app.get('/api/me',checkUser, getCurrentUser)
+    app.get('/api/me',checkUser, getCurrentUser)
 }
