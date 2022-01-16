@@ -8,7 +8,7 @@ const checkUser = async (req, res, next) => {
     const token = req.cookies.token;
     let payload;
     let createDate;
-
+    
     if(!token){
         return res.status(401).end();
     }
@@ -38,7 +38,7 @@ const checkUser = async (req, res, next) => {
     }
 
     const newToken = await setUserToken(user);
-    res.cookie("token",newToken, {expires: new Date(Date.now() + 9000000), httpOnly: true});
+    res.cookie("token",newToken, {expires: new Date(Date.now() + 9000000*2), httpOnly: true});
     req.user = payload.user;
     next();
 }

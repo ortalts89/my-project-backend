@@ -5,13 +5,14 @@ function getPost(query = {}) {
 }
 
 function getPosts(query = {}) {
-    return Post.find(query);
+    return Post.find(query).populate('user', 'fullname');
 }
 
 function createPost(data) {
     const post = new Post(data);
     return post.save();
 }
+
 
 module.exports = {
     getPost,

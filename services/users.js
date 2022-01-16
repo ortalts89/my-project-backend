@@ -13,6 +13,10 @@ async function getUserByLoginData(data) {
     }
 }
 
+function getUsersByQuery(query){
+    return (User.find({fullname: {$regex : query, $options: 'i'}}));
+}
+
 function getUsers(users) {
     return User.find(users);
 }
@@ -31,5 +35,6 @@ module.exports = {
     getUsers,
     createUser,
     updateUser,
-    getUserByLoginData
+    getUserByLoginData,
+    getUsersByQuery
 }
