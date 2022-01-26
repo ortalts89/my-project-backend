@@ -1,21 +1,27 @@
 var cloudinary = require('cloudinary').v2;
 const {getPost, getPosts, createPost} = require('../services/posts.js')
 const { getFollowing } = require('../services/following')
+const { getLikes, deleteMultipleLikes } = require('../services/likes')
+const { getComments, deleteMultipleComments } = require('../services/comments')
 
-async function getOne(req, res) {
-    res.json(req.post);
+async function getPostById(req, res){
+    const postId = req.params.postId;
+    const post = await (getPost({_id: postId, published: true, isDeleted: false}).lean());
+    const postData = await getPostData(post, req.user.id);
+    res.json(postData);
 }
 
 async function getPostsByUserId(req, res) { 
-    const userPosts = await (getPosts({user: req.params.userId, published: true}).lean());
+    const userPosts = await (getPosts({user: req.params.userId, published: true, isDeleted: false}).lean());
     userPosts.sort((a,b) => b.createdAt - a.createdAt);
-    res.json(userPosts);
+    const posts = await getPostsData(userPosts, req.user.id);
+    res.json(posts);
 }
 
-async function getPostById(req, res, next) {
+async function getPostByQuery(req, res, next) {
     const userId = req.user.id;
     const postId = req.params.postId;
-    const post = await getPost({user: userId, _id: postId});
+    const post = await getPost({user: userId, _id: postId, isDeleted: false});
 
     if(post){
         req.post = post;
@@ -25,16 +31,13 @@ async function getPostById(req, res, next) {
     }
 }
 
-async function getAll(req, res){
-    const userPosts = await (getPosts({user: req.user.id, published: true}).lean());
-    res.json(userPosts);
-}
-
 async function getFollowingPosts(req, res){
     let following = await getFollowing({user: req.user.id});
     following = following.map( obj => obj.following);
-    const posts = await (getPosts({user: {$in: following}, published: true}).lean());
-    posts.sort((a,b) => b.createdAt - a.createdAt);
+    following.push(req.user.id);
+    const followingPosts = await (getPosts({user: {$in: following}, published: true, isDeleted: false}).lean());
+    followingPosts.sort((a,b) => b.createdAt - a.createdAt);
+    const posts = await getPostsData(followingPosts, req.user.id);
     res.json(posts);
 }
 
@@ -45,10 +48,7 @@ async function create(req, res) {
                 res.status(404).json({message: error.message});
             }
             return result})
-    const post = await createPost({
-        user: req.user.id,
-        imgUrl: (await imgUrl).url
-    });
+    const post = await createPost({user: req.user.id, imgUrl: (await imgUrl).url});
     res.json(post.id);
 }
 
@@ -63,25 +63,50 @@ async function update(req, res) {
         req.post.hashtags = req.body.hashtags;
     }
     if('published' in req.body){
-        console.log(req.post.published);
         req.post.published = req.body.published;
     }
     await req.post.save();
     res.json(req.post.id);
 }
 
-async function remove(req, res) {
-    await req.post.remove();
-    res.json(req.post);
+async function deletePost(req, res) {
+    req.post.isDeleted = true;
+    await req.post.save();
+    const likes = await getLikes({post: req.post.id, user: req.user.id});
+    const likesIds = likes.map(like => like._id);
+    await deleteMultipleLikes({_id: {$in: likesIds}});
+    const comments = await getComments({post: req.post.id});
+    const commentsIds = comments.map(comment => comment._id);
+    await deleteMultipleComments({_id: {$in: commentsIds}});
+    res.json(req.post.id);
+}
+
+async function getPostData(post, loggedInUserId) {
+    const likes = await (getLikes({post: post._id}).lean());
+    const comments = await (getComments({post: post._id}).lean());
+    const isLikedByCurrentUser = likes.map(like => like.user.toString()).includes(loggedInUserId);
+
+    return {...post, likes: likes, comments: comments, isLikedByCurrentUser: isLikedByCurrentUser}
+}
+
+async function getPostsData(posts, loggedInUserId) {
+    const postsIds = posts.map((post) => post._id);
+    const likes = await (getLikes({post: {$in: postsIds }}).lean());
+    const comments = await (getComments({post: {$in: postsIds}}).lean());
+
+    return posts.map(post => {
+        const postLikes = likes.filter(like => like.post.equals(post._id));
+        const postComments = comments.filter(comment => comment.post.equals(post._id));
+        const isLikedByCurrentUser = postLikes.map(like => like.user.toString()).includes(loggedInUserId);
+        return {...post, likes:  postLikes, comments: postComments, isLikedByCurrentUser: isLikedByCurrentUser}})
 }
 
 module.exports = {
-    getOne,
-    getPostById,
-    getAll,
+    getPostByQuery,
     getFollowingPosts,
+    getPostById,
     create,
     update,
-    remove,
+    deletePost,
     getPostsByUserId
 }

@@ -9,7 +9,8 @@ const PostSchema = new mongoose.Schema({
     createdAt: {type: Date, default: Date.now()},
     user: {type: ObjectId, ref: 'User', required: true},
     imgUrl: {type: String, required:true},
-    published: {type: Boolean, required: true, default: false}
+    published: {type: Boolean, required: true, default: false},
+    isDeleted: {type: Boolean, required: true, default: false}
 });
 
 const Post = mongoose.model('Post', PostSchema)

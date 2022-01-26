@@ -10,5 +10,12 @@ async function connectToDb() {
 
 require('./post');
 require('./user');
+require('./comment');
+require('./commentXNotification');
+require('./follower');
+require('./following');
+require('./like');
+require('./likeXNotification');
+require('./notification');
 
 module.exports = connectToDb;

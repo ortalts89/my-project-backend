@@ -16,7 +16,6 @@ async function getAllFollowers(req, res) {
 }
 
 async function addFollow(req, res) {
-    console.log(req.user.id, req.params.userId )
     const following = await createFollowing({user: req.user.id, following: req.params.userId});
     const follower = await createFollower({user: req.params.userId, follower: req.user.id});
     res.json({following, follower})
