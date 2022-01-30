@@ -26,10 +26,6 @@ async function deleteLike(req, res) {
     res.json(like.id)
 }
 
-async function deletePostLike(req, res) {
-    
-}
-
 module.exports = {
     addLike,
     deleteLike

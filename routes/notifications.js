@@ -4,6 +4,5 @@ const { getUserNotifications, deleteNotification} = require('../controllers/noti
 module.exports = (app) => {
     app.use('/api/notifications', checkUser)
     app.get('/api/notifications', getUserNotifications);
-    app.delete('/api/notifications/:notificationId/delete', deleteNotification)
-    //app.delete('/api/notifications/:notificationId', deleteNotification)
+    app.delete('/api/notifications/:notificationId', deleteNotification)
 }

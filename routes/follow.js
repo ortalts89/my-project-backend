@@ -5,9 +5,7 @@ module.exports = (app) => {
     app.use('/api/follow', checkUser);
     app.get('/api/follow/:userId/followers', getAllFollowers)
     app.get('/api/follow/:userId/following', getAllFollowing)
-    app.post('/api/follow/follow/:userId', addFollow)
-    //app.post('/api/follow/:userId', addFollow)
-    app.post('/api/follow/unfollow/:userId', removeFollow)
-    //app.delete('/api/follow/:userId', removeFollow)
+    app.post('/api/follow/:userId', addFollow)
+    app.delete('/api/follow/:userId', removeFollow)
 
 }
